@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +16,7 @@ import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -40,11 +42,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FusedLocationProviderClient fusedLocationClient;
     private Button findHospital;
-    private Location loc;
-    private static final String URL = "http://10.200.202.149:5000/";
-    private static String coords[] = new String[2];
+    private static final String URL = "http://192.168.137.44:5000/";
+    private static String coords[] = new String[2]; // first lat than lon
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,20 +58,21 @@ public class MainActivity extends AppCompatActivity {
 
                 //
                 // find local position
-                //
+                coords[0] =  "31.79300880432129";
+                coords[1] = "34.64921951293945";
 
                 //
-                // post the server
-                //
+                // post to server
+                String post_url = URL + "?lat=" + coords[0] + "&lon=" + coords[1];
+                http_get(post_url);
 
                 //
-                // call to server
+                // get from server
                 http_get(URL);
-                //
 
                 //
                 // start waze
-                //
+                startWaze();
             }
         });
     }
@@ -88,9 +89,6 @@ public class MainActivity extends AppCompatActivity {
                         try{
                             coords[0] = response.getString("lat");
                             coords[1] = response.getString("lon");
-                            String uri = "waze://?ll=" + coords[0] + ", " + coords[1] + "&navigate=yes";
-                            startActivity(new Intent(android.content.Intent.ACTION_VIEW,
-                                    Uri.parse(uri)));
                         }
                         catch (JSONException e){
                             e.printStackTrace();
@@ -123,31 +121,13 @@ public class MainActivity extends AppCompatActivity {
         requestQueue.add(objectRequest);
     }
 
-    private void http_post(String URL, String data){
+    private void get_location(){
 
     }
 
-    private void temp(){
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        findHospital = findViewById(R.id.findHospital);
-        findHospital.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fusedLocationClient.getLastLocation()
-                        .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
-                            @Override
-                            public void onSuccess(Location location) {
-                                // Got last known location. In some rare situations this can be null.
-                                if (location != null) {
-                                    // Logic to handle location object
-                                    Log.d("Debug", location.toString());
-                                    loc.setAltitude(location.getAltitude());
-                                    loc.setLongitude(location.getLongitude());
-                                }
-                            }
-                        });
-            }
-        });
+    private void startWaze(){
+        String uri = "waze://?ll=" + coords[0] + ", " + coords[1] + "&navigate=yes";
+        startActivity(new Intent(android.content.Intent.ACTION_VIEW,
+                Uri.parse(uri)));
     }
 }

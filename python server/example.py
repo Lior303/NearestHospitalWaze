@@ -12,7 +12,7 @@ list_of_hospital = ['בית חולים קפלן, ישראל',
                     'בית חולים אסותא אשדוד, ישראל',
                     'בית חולים הדסה, ישראל']
 
-from_address = 'Ashdod, Israel'
+from_address = "31.79300880432129, 34.64921951293945"
 to_address = None
 
 
@@ -33,18 +33,11 @@ def find_minimum_destination():
 @app.route('/', methods=['GET', 'POST'])
 def user_function():
     if request.method == 'GET':
+        lat = request.args.get('lat')
+        lon = request.args.get('lon')
+        from_address = "{}, {}".format(lat, lon)
         hospital = find_minimum_destination()
-        print("$$$$$$$$$$$$$$$$$$$$$")
-        print(hospital[0])
-        print(hospital[1])
         return "{}".format(hospital[1])
-    if request.method == 'POST':
-        """modify/update the information for <user_id>"""
-        # you can use <user_id>, which is a str but could
-        # changed to be int or whatever you want, along
-        # with your lxml knowledge to make the required
-        # changes
-        from_address = request.form  # a multidict containing POST data
     else:
         # POST Error 405 Method Not Allowed
         return None
@@ -57,6 +50,6 @@ logger.addHandler(handler)
 
 
 try:
-    app.run(host='10.200.202.149')
+    app.run(host='192.168.137.44')
 except WazeRouteCalculator.WRCError as err:
     print(err)
