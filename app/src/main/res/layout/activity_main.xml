@@ -6,10 +6,23 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+        android:id="@+id/about"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="About"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/getHelp"
+        app:layout_constraintVertical_bias="0.191" />
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="386dp"
         android:layout_height="117dp"
+        android:gravity="center_horizontal"
         android:text="Find The Nearest Hospital"
         android:textSize="36sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -41,6 +54,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintVertical_bias="0.34" />
+
+    <Button
+        android:id="@+id/getHelp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get Help"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/findHospital"
+        app:layout_constraintVertical_bias="0.281" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
