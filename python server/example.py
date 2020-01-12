@@ -12,7 +12,7 @@ list_of_hospital = ['בית חולים קפלן, ישראל',
                     'בית חולים אסותא אשדוד, ישראל',
                     'בית חולים הדסה, ישראל']
 
-from_address = "31.79300880432129, 34.64921951293945"
+from_address = None
 to_address = None
 
 
@@ -50,6 +50,6 @@ logger.addHandler(handler)
 
 
 try:
-    app.run(host='192.168.137.44')
+    app.run(host='10.200.201.111')
 except WazeRouteCalculator.WRCError as err:
     print(err)

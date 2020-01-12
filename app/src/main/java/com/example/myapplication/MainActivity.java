@@ -2,9 +2,13 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -49,9 +53,11 @@ public class MainActivity extends AppCompatActivity {
     private Button findHospital;
     private Button getHelp;
     private Button about;
-    private static final String URL = "http://192.168.137.44:5000/";
+    private static final String URL = "http://10.200.201.111:5000/";
     private static String coords[] = new String[2]; // first lat than lon
     private FusedLocationProviderClient fusedLocationClient;
+    private static final int REQUEST_ACCESS_COARSE_LOCATION = 1;
+    private RequestQueue requestQueue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +65,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         about = findViewById(R.id.about);
-        about.setOnClickListener(new View.OnClickListener() {
+        getHelp = findViewById(R.id.getHelp);
+
+        getHelp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
@@ -76,8 +84,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        getHelp = findViewById(R.id.getHelp);
-        getHelp.setOnClickListener(new View.OnClickListener() {
+        about.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
@@ -100,41 +107,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                //
-                // find local position
+                requestQueue = Volley.newRequestQueue(MainActivity.this);
                 Toast.makeText(MainActivity.this, "Start calculating...", Toast.LENGTH_LONG).show();
-                findHospital.setEnabled(false);
 
-                fusedLocationClient.getLastLocation()
-                        .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
-                            @Override
-                            public void onSuccess(Location location) {
-                                // Got last known location. In some rare situations this can be null.
-                                if (location != null) {
-                                    coords[0] = Double.toString(location.getLatitude());
-                                    coords[1] = Double.toString(location.getLongitude());
-                                }
-                            }
-                        });
-
-                //
-                // post to server
-                String post_url = URL + "?lat=" + coords[0] + "&lon=" + coords[1];
-                http_get(post_url);
-
-                //
-                // get from server
-                http_get(URL);
-
-                //
-                // start waze
-                startWaze();
+                if (checkCoarseLocationPermission()){
+                    main_code();
+                }
+                else{
+                    Toast.makeText(MainActivity.this, "Course location permission is not granted", Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
 
     private void http_get(String URL) {
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
         JsonObjectRequest objectRequest = new JsonObjectRequest(
                 Request.Method.GET,
                 URL,
@@ -143,8 +129,15 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(JSONObject response) {
                         Log.d("Debug", response.toString());
                         try{
+
+                            //
+                            // get the coordinates of the nearest hospital
                             coords[0] = response.getString("lat");
                             coords[1] = response.getString("lon");
+
+                            //
+                            // start waze
+                            startWaze();
                         }
                         catch (JSONException e){
                             e.printStackTrace();
@@ -170,9 +163,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void retry(VolleyError error) throws VolleyError {
-
-            }
+            public void retry(VolleyError error) throws VolleyError {}
         });
         requestQueue.add(objectRequest);
     }
@@ -181,5 +172,37 @@ public class MainActivity extends AppCompatActivity {
         String uri = "waze://?ll=" + coords[0] + ", " + coords[1] + "&navigate=yes";
         startActivity(new Intent(android.content.Intent.ACTION_VIEW,
                 Uri.parse(uri)));
+    }
+
+    private boolean checkCoarseLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_ACCESS_COARSE_LOCATION);
+            return false;
+        }
+        return true;
+    }
+
+    private void main_code(){
+
+        findHospital.setEnabled(false);
+
+        //
+        // get current location
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            coords[0] = Double.toString(location.getLatitude());
+                            coords[1] = Double.toString(location.getLongitude());
+
+                            //
+                            // post to server
+                            String post_url = URL + "?lat=" + coords[0] + "&lon=" + coords[1];
+                            http_get(post_url);
+                        }
+                    }
+                });
     }
 }
